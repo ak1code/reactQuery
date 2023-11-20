@@ -1,0 +1,18 @@
+#singleCart{
+    width: 100%;
+    border: 1px solid red;
+    text-align: center;
+    /* padding: 1rem; */
+}
+
+.product{
+    width: 80%;
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 1rem;
+    margin: auto;
+}
+
+#singleCart >img{
+     width: 100%;
+}
