@@ -11,51 +11,59 @@ const getData = async () => {
   return res.data;
 };
 
+let count = 0;
+
 const Product = () => {
-  const [products, setProducts] = useState([]);
   const queryClient = new QueryClient();
 
-  const { isLoading, error, data } = useQuery("product", getData);
+  const { isLoading, error, data, refetch } = useQuery("product", getData, {
+    staleTime: Infinity,
+  });
 
-  useEffect(() => {
-    if (data) {
-      setProducts(data);
-    }
-  }, [data]);
+  const mutation = useMutation({
+    mutationFn: (newTodo) => {
+      return axios.post(
+        "https://electronix-express-api.onrender.com/products",
+        newTodo
+      );
+    },
+    onSuccess: () => {
+      refetch(); // Refetch data after successful mutation
+    },
+  });
 
-  const addItem = async () => {
+  const addItem = () => {
     let obj = {
       title: "new",
-      price: 10,
+      price: count++,
     };
-    try {
-      let res = await axios.post(
-        "https://electronix-express-api.onrender.com/products",
-        obj
-      );
-      const newData = [...products, res.data];
-      setProducts(newData);
-    } catch (error) {
-      console.error("Error adding item:", error);
-    }
+    mutation.mutate(obj);
   };
 
+  if (mutation.isLoading) {
+    return <h1>Adding loading.....</h1>;
+  }
+  if (mutation.isError) {
+    return <h1>Error: {mutation.error.message}</h1>;
+  }
+
   if (isLoading) {
-    return <h1>loading.....</h1>;
+    return <h1>Loading.....</h1>;
   }
   if (error) {
     return <h1>Error: {error.message}</h1>;
   }
 
+  console.log(data); // This might not immediately reflect the updated data due to async nature
+
   return (
     <div>
       <div className="product">
-        {products.map((item) => (
+        {data?.map((item) => (
           <ProductCart key={item.id} {...item} />
         ))}
         <ReactQueryDevtools initialIsOpen />
-
-        <button onClick={addItem}>add Product</button>
+        <button onClick={addItem}>Add Product</button>
       </div>
     </div>
   );
